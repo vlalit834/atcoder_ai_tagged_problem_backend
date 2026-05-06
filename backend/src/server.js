@@ -1,11 +1,10 @@
-import express from 'express';
-import healthRoutes from './routes/health.routes.js';
-const app=express();
-const PORT=8000;
+import express from "express";
+import { createApp } from "./app.js";
+import { env } from "./config/env.js";
+const app = createApp();
 
-app.use('/health',healthRoutes)
-
-app.listen(PORT,(req,res)=>{
-    console.log(`Server running at http://localhost:${PORT}`);
+app.listen(env.PORT, (req, res) => {
+  console.log(
+    `Server running at http://localhost:${env.PORT} (${env.NODE_ENV})`,
+  );
 });
-
