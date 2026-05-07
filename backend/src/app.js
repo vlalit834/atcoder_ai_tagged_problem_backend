@@ -5,8 +5,8 @@ import morgan from "morgan";
 import { ok } from "./utils/apiResponse.js";
 import healthRoutes from "./routes/health.routes.js";
 import { corsMiddleware } from "./middleware/cors.js";
-import { notFound } from "../middleware/notFound.js";
-import { errorHandler } from "../middleware/errorHandler.js";
+import { notFound } from "./middleware/notFound.js";
+import { errorHandler } from "./middleware/errorHandler.js";
 
 export function createApp() {
   const app = express();

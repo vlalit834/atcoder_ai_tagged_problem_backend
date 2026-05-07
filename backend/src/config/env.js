@@ -2,7 +2,7 @@ import "dotenv/config.js";
 
 function read(name, { fallback, parse = (v) => v } = {}) {
   const raw = process.env[name];
-  if (raw == undefined || raw == "") return fallback;
+  if (raw === undefined || raw === "") return fallback;
   return parse(raw);
 }
 

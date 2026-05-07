@@ -1,4 +1,4 @@
-import { isProd } from "../src/config/env.js";
+import { isProd } from "../config/env.js";
 
 export function errorHandler(err, req, res, next) {
   const status = err.status || 500;
