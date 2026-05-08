@@ -1,4 +1,4 @@
-import { getDb } from "./connection";
+import { getDb } from "./connection.js";
 
 const cache = new Map();
 function prep(key, sql) {
@@ -9,20 +9,20 @@ function prep(key, sql) {
 }
 
 export const queries = {
-  constAll: () => prep(`countAll`, `SELECT COUNT(*) AS total FROM problems`),
+  countAll: () => prep(`countAll`, `SELECT COUNT(*) AS total FROM problems`),
   selectPage: () =>
     prep(
       `selectPage`,
-      `SELECT problem_index,Problem_Link,Editorial_Link,Tags FROM problems ORDER BY id ASC LIMIT ? OFFESET`,
+      `SELECT problem_index,Problem_Link,Editorial_Link,Tags FROM problems ORDER BY problem_index ASC LIMIT ? OFFSET ?`,
     ),
   tagCounts: () =>
     prep(
       `tagCounts`,
-      `SELECT Tags,COUNT(*) AS count FROM problems GROUP BY tag ORDER BY count DESC`,
+      `SELECT Tags,COUNT(*) AS count FROM problems GROUP BY Tags ORDER BY count DESC`,
     ),
   distinctContest: () =>
     prep(
       `distinctContest`,
-      `SELECT DISTINCT substr(id,1,instr(id,'_)-1) AS contest FROM problems WHERE problems WHERE instr(id,'_)>0 OREDER BY contest ASC`,
+      `SELECT DISTINCT substr(id,1,instr(id,'_')-1) AS contest FROM problems WHERE instr(id,'_')>0 ORDER BY contest ASC`,
     ),
 };

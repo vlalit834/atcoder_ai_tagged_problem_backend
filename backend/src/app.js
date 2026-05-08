@@ -7,6 +7,7 @@ import healthRoutes from "./routes/health.routes.js";
 import { corsMiddleware } from "./middleware/cors.js";
 import { notFound } from "./middleware/notFound.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import problemsRoutes from "./routes/problems.routes.js";
 
 export function createApp() {
   const app = express();
@@ -27,6 +28,7 @@ export function createApp() {
     });
   });
   app.use("/health", healthRoutes);
+  app.use("/problems", problemsRoutes);
   app.use(notFound);
   app.use(errorHandler);
   return app;
