@@ -25,4 +25,5 @@ export const queries = {
       `distinctContest`,
       `SELECT DISTINCT substr(id,1,instr(id,'_')-1) AS contest FROM problems WHERE instr(id,'_')>0 ORDER BY contest ASC`,
     ),
+  selectAllTags: () => prep(`selectAllTags`, `SELECT Tags FROM problems`),
 };

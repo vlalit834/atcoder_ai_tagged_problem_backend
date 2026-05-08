@@ -14,3 +14,25 @@ export function listProblems(req, res) {
     items,
   });
 }
+
+export function listTags(req, res) {
+  const rows = queries.selectAllTags().all();
+  const tagCount = new Map();
+
+  for (const row of rows) {
+    if (row.Tags) {
+      const tags = row.Tags.split(",").map((t) => t.trim());
+      for (const tag of tags) {
+        if (tag) {
+          tagCount.set(tag, (tagCount.get(tag) || 0) + 1);
+        }
+      }
+    }
+  }
+
+  const result = Array.from(tagCount.entries())
+    .map(([Tags, count]) => ({ Tags, count }))
+    .sort((a, b) => b.count - a.count);
+
+  ok(res, result);
+}
