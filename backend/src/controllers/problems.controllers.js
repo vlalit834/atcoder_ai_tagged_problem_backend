@@ -1,7 +1,7 @@
 import { queries } from "../db/queries.js";
 import { parsePagination } from "../utils/pagination.js";
 import { ok } from "../utils/apiResponse.js";
-
+import { getContests } from "../services/kenkoooo.service.js";
 export function listProblems(req, res) {
   const { page, limit, offset } = parsePagination(req.query);
   const total = queries.countAll().get().total;
@@ -35,4 +35,9 @@ export function listTags(req, res) {
     .sort((a, b) => b.count - a.count);
 
   ok(res, result);
+}
+
+export async function listContests(req, res) {
+  const contests = await getContests();
+  ok(res, { total: contests.length, items: contests });
 }

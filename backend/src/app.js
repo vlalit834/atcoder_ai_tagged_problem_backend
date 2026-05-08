@@ -9,6 +9,7 @@ import { notFound } from "./middleware/notFound.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import problemsRoutes from "./routes/problems.routes.js";
 import tagsRoutes from "./routes/tags.routes.js";
+import contestsRoute from "./routes/contests.routes.js";
 export function createApp() {
   const app = express();
   app.set("trust proxy", 1);
@@ -18,7 +19,6 @@ export function createApp() {
   app.use(compression());
   app.use(express.json({ limit: "1mb" }));
   app.use(morgan("dev"));
-  app.use(express.json());
   app.get("/", (req, res) => {
     ok(res, {
       name: "ai_tagged_atcoder_probelms_backend",
@@ -30,6 +30,7 @@ export function createApp() {
   app.use("/health", healthRoutes);
   app.use("/problems", problemsRoutes);
   app.use("/tags", tagsRoutes);
+  app.use("/contests", contestsRoute);
   app.use(notFound);
   app.use(errorHandler);
   return app;
