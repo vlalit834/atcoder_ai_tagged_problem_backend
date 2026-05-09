@@ -4,8 +4,14 @@ import { ok } from "../utils/apiResponse.js";
 import { getContests } from "../services/kenkoooo.service.js";
 export function listProblems(req, res) {
   const { page, limit, offset } = parsePagination(req.query);
+  const tag = req.query.tag?.trim();
   const total = queries.countAll().get().total;
   const items = queries.selectPage().all(limit, offset);
+  if (tag) {
+    const pattern = `%${tag}%`;
+    total = queries.countByTag().get(pattern).total;
+    items = queries.searchByTag().all(pattern, limit, offset);
+  }
   ok(res, {
     page,
     limit,
@@ -39,5 +45,11 @@ export function listTags(req, res) {
 
 export async function listContests(req, res) {
   const contests = await getContests();
-  ok(res, { total: contests.length, items: contests });
+  const category = req.query.category?.toLowerCase();
+  let flitered = contests;
+  if (category) {
+    flitered = contests.filter((c) => c.id.startsWith(category));
+  }
+  flitered.sort((a, b) => b.start_epoch_second - a.start_epoch_second);
+  ok(res, { total: flitered.length, items: flitered });
 }
