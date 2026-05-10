@@ -1,7 +1,13 @@
 import { queries } from "../db/queries.js";
 import { parsePagination } from "../utils/pagination.js";
-import { ok } from "../utils/apiResponse.js";
-import { getContests } from "../services/kenkoooo.service.js";
+import { ok, fail } from "../utils/apiResponse.js";
+import {
+  getContests,
+  getProblems,
+  getMergedProblems,
+  getProblemModels,
+  getUserSubmissions,
+} from "../services/kenkoooo.service.js";
 export function listProblems(req, res) {
   const { page, limit, offset } = parsePagination(req.query);
   const tag = req.query.tag?.trim();
@@ -52,4 +58,53 @@ export async function listContests(req, res) {
   }
   flitered.sort((a, b) => b.start_epoch_second - a.start_epoch_second);
   ok(res, { total: flitered.length, items: flitered });
+}
+
+export async function listAllProblems(req, res) {
+  const [problems, merged] = await Promise.all([
+    getProblems(),
+    getMergedProblems(),
+  ]);
+
+  const mergedMap = new Map(merged.map((m) => [m.id, m]));
+
+  const result = problems.map((p) => {
+    const extra = mergedMap.get(p.id) || {};
+    const linkPattern = `%${p.id}%`;
+    const dbRow = queries.findByLink().get(linkPattern);
+
+    return {
+      id: p.id,
+      contest_id: p.contest_id,
+      problem_index: p.problem_index,
+      name: p.name,
+      title: p.title,
+      solver_count: extra.solver_count || null,
+      tags: dbRow?.Tags || null,
+    };
+  });
+
+  ok(res, { total: result.length, items: result });
+}
+
+export async function listDifficulties(req, res) {
+  const models = await getProblemModels();
+  ok(res, models);
+}
+
+export async function userSubmissions(req, res) {
+  const { username } = req.params;
+  if (!username) {
+    return fail(res, "invlaid username", 400);
+  }
+  const submissions = await getUserSubmissions(username);
+  const accepted = submissions.filter((s) => s.result === "AC");
+  const solvedSet = new Set(accepted.map((s) => s.problem_index));
+  ok(res, {
+    username,
+    total_submissions: submissions.length,
+    accepted_count: accepted.length,
+    unique_solved: solvedSet.size,
+    solved_problems: Array.from(solvedSet),
+  });
 }

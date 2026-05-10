@@ -10,6 +10,7 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import problemsRoutes from "./routes/problems.routes.js";
 import tagsRoutes from "./routes/tags.routes.js";
 import contestsRoute from "./routes/contests.routes.js";
+import { apiLimiter } from "./middleware/rateLimiter.js";
 export function createApp() {
   const app = express();
   app.set("trust proxy", 1);
@@ -19,11 +20,18 @@ export function createApp() {
   app.use(compression());
   app.use(express.json({ limit: "1mb" }));
   app.use(morgan("dev"));
+  app.use(apiLimiter);
   app.get("/", (req, res) => {
     ok(res, {
-      name: "ai_tagged_atcoder_probelms_backend",
+      name: "ai_tagged_atcoder_problems_backend",
       endpoints: {
         health: "GET /health",
+        problems: "GET /problems?page=1&limit=20&tag=dp",
+        allProblems: "GET /problems/all",
+        difficulties: "GET /problems/difficulties",
+        userSubmissions: "GET /problems/user/:username/submissions",
+        tags: "GET /tags",
+        contests: "GET /contests?category=abc",
       },
     });
   });
