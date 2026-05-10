@@ -7,6 +7,6 @@ export const apiLimiter = rateLimit({
   legacyHeaders: false,
   message: {
     success: false,
-    message: "Too many requests,please tray again after 15 minutes",
+    message: "Too many requests,please try again after 15 minutes",
   },
 });

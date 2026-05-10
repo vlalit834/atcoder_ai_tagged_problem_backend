@@ -11,8 +11,8 @@ import {
 export function listProblems(req, res) {
   const { page, limit, offset } = parsePagination(req.query);
   const tag = req.query.tag?.trim();
-  const total = queries.countAll().get().total;
-  const items = queries.selectPage().all(limit, offset);
+  let total = queries.countAll().get().total;
+  let items = queries.selectPage().all(limit, offset);
   if (tag) {
     const pattern = `%${tag}%`;
     total = queries.countByTag().get(pattern).total;
@@ -52,12 +52,12 @@ export function listTags(req, res) {
 export async function listContests(req, res) {
   const contests = await getContests();
   const category = req.query.category?.toLowerCase();
-  let flitered = contests;
+  let filtered = contests;
   if (category) {
-    flitered = contests.filter((c) => c.id.startsWith(category));
+    filtered = contests.filter((c) => c.id.startsWith(category));
   }
-  flitered.sort((a, b) => b.start_epoch_second - a.start_epoch_second);
-  ok(res, { total: flitered.length, items: flitered });
+  filtered.sort((a, b) => b.start_epoch_second - a.start_epoch_second);
+  ok(res, { total: filtered.length, items: filtered });
 }
 
 export async function listAllProblems(req, res) {
@@ -95,11 +95,11 @@ export async function listDifficulties(req, res) {
 export async function userSubmissions(req, res) {
   const { username } = req.params;
   if (!username) {
-    return fail(res, "invlaid username", 400);
+    return fail(res, "invalid username", 400);
   }
   const submissions = await getUserSubmissions(username);
   const accepted = submissions.filter((s) => s.result === "AC");
-  const solvedSet = new Set(accepted.map((s) => s.problem_index));
+  const solvedSet = new Set(accepted.map((s) => s.problem_id));
   ok(res, {
     username,
     total_submissions: submissions.length,
