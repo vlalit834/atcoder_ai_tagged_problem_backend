@@ -7,7 +7,11 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon --exec node src/server.js",
-    "init:db": "python3 scripts/init_db.py "
+    "init:db": "python3 scripts/init_db.py",
+    "build": "echo 'No build step needed'"
+  },
+  "engines": {
+    "node": ">18.0.0"
   },
   "keywords": [],
   "author": "",

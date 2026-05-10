@@ -27,8 +27,17 @@ function shutDown(signal) {
   setTimeout(() => {
     console.log("[Server] force-closing");
     exitCleanly(0);
-  }, 2000).unref();
+  }, 1000).unref();
 }
 
 process.on("SIGINT", () => shutDown("SIGINT"));
 process.on("SIGTERM", () => shutDown("SIGTERM"));
+process.on("unhandledRejection", (reason) => {
+  console.error("[Server] unhandledRejection:", reason);
+  shutDown("unhandledRejection");
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("[Server] uncaughtException:", err);
+  shutDown("uncaughtException");
+});
