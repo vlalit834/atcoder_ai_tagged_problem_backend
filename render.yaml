@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     rootDir: backend
-    buildCommand: npm install && mkdir -p data && base64 -d /etc/secrets/problems.db.b64 > data/problems.db
+    buildCommand: npm install && mkdir -p data && curl -L -H "Authorization: Bearer ${HF_TOKEN}" -o data/problems.db https://huggingface.co/datasets/vlalit834/atcoder-tagged-db/resolve/main/problems.db
     startCommand: npm start
     healthCheckPath: /health
     envVars:
