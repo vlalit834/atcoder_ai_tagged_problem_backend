@@ -11,6 +11,7 @@ import problemsRoutes from "./routes/problems.routes.js";
 import tagsRoutes from "./routes/tags.routes.js";
 import contestsRoute from "./routes/contests.routes.js";
 import { apiLimiter } from "./middleware/rateLimiter.js";
+import { env } from "./config/env.js";
 export function createApp() {
   const app = express();
   app.set("trust proxy", 1);
@@ -19,7 +20,7 @@ export function createApp() {
   app.use(corsMiddleware);
   app.use(compression());
   app.use(express.json({ limit: "1mb" }));
-  app.use(morgan("dev"));
+  app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
   app.use(apiLimiter);
   app.get("/", (req, res) => {
     ok(res, {

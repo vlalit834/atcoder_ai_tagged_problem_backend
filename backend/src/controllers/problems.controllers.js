@@ -1,6 +1,7 @@
 import { queries } from "../db/queries.js";
 import { parsePagination } from "../utils/pagination.js";
 import { ok, fail } from "../utils/apiResponse.js";
+import { isValidUsername, sanitizeTag } from "../utils/validate.js";
 import {
   getContests,
   getProblems,
@@ -10,7 +11,7 @@ import {
 } from "../services/kenkoooo.service.js";
 export function listProblems(req, res) {
   const { page, limit, offset } = parsePagination(req.query);
-  const tag = req.query.tag?.trim();
+  const tag = sanitizeTag(req.query.tag);
   let total = queries.countAll().get().total;
   let items = queries.selectPage().all(limit, offset);
   if (tag) {
@@ -94,7 +95,7 @@ export async function listDifficulties(req, res) {
 
 export async function userSubmissions(req, res) {
   const { username } = req.params;
-  if (!username) {
+  if (!isValidUsername(username)) {
     return fail(res, "invalid username", 400);
   }
   const submissions = await getUserSubmissions(username);
