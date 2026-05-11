@@ -40,11 +40,40 @@ export async function getProblemModels() {
   return fetchWithCache("models", `${BASE}/resources/problem-models.json`);
 }
 
-export async function getUserSubmissions(user, fromSecond = 0) {
-  const url = `${BASE}/atcoder-api/v3/user/submissions?user=${encodeURIComponent(user)}&from_second=${fromSecond}`;
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Kenkoooo error: ${response.status} for ${user}`);
+const userSubsCache = new Map();
+const USER_TTL = 5 * 60 * 1000;
+
+export async function getUserSubmissions(user) {
+  const now = Date.now();
+  const cached = userSubsCache.get(user);
+
+  if (cached && now - cached.fetchedAt < USER_TTL) {
+    return cached.data;
   }
-  return response.json();
+
+  const all = [];
+  let fromSecond = 0;
+
+  while (true) {
+    const url = `${BASE}/atcoder-api/v3/user/submissions?user=${encodeURIComponent(user)}&from_second=${fromSecond}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`Kenkoooo error: ${response.status} for ${user}`);
+    }
+
+    const batch = await response.json();
+
+    if (batch.length === 0) break;
+
+    all.push(...batch);
+
+    if (batch.length < 500) break;
+
+    const lastEpoch = batch[batch.length - 1].epoch_second;
+    fromSecond = lastEpoch + 1;
+  }
+
+  userSubsCache.set(user, { data: all, fetchedAt: now });
+  return all;
 }
