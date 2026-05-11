@@ -21,6 +21,7 @@ export function createApp() {
   app.use(compression());
   app.use(express.json({ limit: "1mb" }));
   app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
+  app.use("/health", healthRoutes);
   app.use(apiLimiter);
   app.get("/", (req, res) => {
     ok(res, {
@@ -36,7 +37,6 @@ export function createApp() {
       },
     });
   });
-  app.use("/health", healthRoutes);
   app.use("/problems", problemsRoutes);
   app.use("/tags", tagsRoutes);
   app.use("/contests", contestsRoute);
