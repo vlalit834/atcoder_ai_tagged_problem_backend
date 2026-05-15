@@ -45,7 +45,6 @@ export interface ContestList {
   items: Contest[];
 }
 
-
 export interface ProblemModel {
   difficulty?: number;
   is_experimental?: boolean;
@@ -53,3 +52,17 @@ export interface ProblemModel {
 
 export type DifficultyResponse = Record<string, ProblemModel>;
 
+export interface AllProblem {
+  id: string;
+  contest_id: string;
+  problem_index: string;
+  name: string;
+  title: string;
+  solver_count: number | null;
+  tags: string | null;
+}
+
+export interface AllProblemsResponse {
+  total: number;
+  items: AllProblem[];
+}

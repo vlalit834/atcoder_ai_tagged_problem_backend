@@ -5,6 +5,7 @@ import type {
   TagCount,
   ContestList,
   DifficultyResponse,
+  AllProblemsResponse,
 } from "../types/api";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
@@ -56,4 +57,6 @@ export const api = {
   },
 
   difficulties: () => request<DifficultyResponse>("/problems/difficulties"),
+
+  allProblems: () => request<AllProblemsResponse>("/problems/all"),
 };
