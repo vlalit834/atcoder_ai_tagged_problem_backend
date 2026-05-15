@@ -16,11 +16,13 @@ import { api } from "../lib/api";
 import type { Problem, TagCount, DifficultyResponse } from "../types/api";
 import { useDebounce } from "../hooks/useDebounce";
 import { getDifficultyColor, getDifficultyLabel } from "../lib/difficulty";
+import { useUser } from "../context/UserContext";
 
 type SortKey = "id_asc" | "id_desc" | "diff_asc" | "diff_desc";
 
 export default function ListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { solvedSet, username } = useUser();
 
   const initialPage = parseInt(searchParams.get("page") || "1", 10);
   const initialTag = searchParams.get("tag") || "";
@@ -54,17 +56,12 @@ export default function ListPage() {
 
     api
       .difficulties()
-      .then((res: any) => {
+      .then((res: DifficultyResponse) => {
         const map = new Map<string, number>();
-        
-        if (res && typeof res === "object") {
-          const entries = Array.isArray(res) 
-            ? res.map(r => [r.problem_id, r]) 
-            : Object.entries(res);
-            
-          entries.forEach(([problemId, model]: any) => {
-            if (model && typeof model.difficulty === "number") {
-              map.set(problemId, Math.max(0, model.difficulty));
+        if (res) {
+          Object.entries(res).forEach(([problemId, model]) => {
+            if (model && model.difficulty !== undefined) {
+              map.set(problemId, model.difficulty);
             }
           });
         }
@@ -215,8 +212,15 @@ export default function ListPage() {
               </tr>
             </thead>
             <tbody>
-              {visibleProblems.map(({ problem: p, diff }, idx) => (
-                <tr key={p.Problem_Link}>
+              {visibleProblems.map(({ problem: p, diff }, idx) => {
+                const pid = getProblemId(p.Problem_Link);
+                const isSolved = solvedSet.has(pid);
+                return (
+                <tr
+                  key={p.Problem_Link}
+                  className={isSolved ? "table-success" : undefined}
+                  title={isSolved ? `Solved by ${username}` : undefined}
+                >
                   <td>{(page - 1) * limit + idx + 1}</td>
                   <td>{p.problem_index}</td>
                   <td>
@@ -225,8 +229,13 @@ export default function ListPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      {getProblemId(p.Problem_Link) || "View Problem"}
+                      {pid || "View Problem"}
                     </a>
+                    {isSolved && (
+                      <Badge color="success" className="ms-2">
+                        AC
+                      </Badge>
+                    )}
                   </td>
                   <td>
                     <span
@@ -263,7 +272,8 @@ export default function ListPage() {
                     )}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </Table>
 

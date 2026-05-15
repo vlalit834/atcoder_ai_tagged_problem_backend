@@ -22,6 +22,7 @@ import type {
 } from "../types/api";
 import DifficultyCircle from "../components/DifficultyCircle";
 import { getDifficultyInfo } from "../lib/difficulty";
+import { useUser } from "../context/UserContext";
 
 type Category =
   | "ABC"
@@ -125,6 +126,7 @@ function parseTags(raw: string | null | undefined): string[] {
 
 export default function TablePage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { solvedSet, username } = useUser();
 
   const initialCategory =
     (searchParams.get("category") as Category) &&
@@ -365,8 +367,14 @@ export default function TablePage() {
                       const isExp = difficulties[p.id]?.is_experimental;
                       const info = getDifficultyInfo(diff);
                       const tags = parseTags(p.tags);
+                      const isSolved = solvedSet.has(p.id);
                       return (
-                        <td key={h} style={{ verticalAlign: "top" }}>
+                        <td
+                          key={h}
+                          className={isSolved ? "table-success" : undefined}
+                          style={{ verticalAlign: "top" }}
+                          title={isSolved ? `Solved by ${username}` : undefined}
+                        >
                           <a
                             href={`https://atcoder.jp/contests/${p.contest_id}/tasks/${p.id}`}
                             target="_blank"

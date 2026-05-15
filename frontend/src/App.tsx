@@ -5,20 +5,23 @@ import ListPage from "./pages/ListPage";
 import TablePage from "./pages/TablePage";
 import UserPage from "./pages/UserPage";
 import { ThemeProvider } from "./context/ThemeContext";
+import { UserProvider } from "./context/UserContext";
 
 function App() {
   return (
     <ThemeProvider>
-      <BrowserRouter>
-        <NavigationBar />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/list" element={<ListPage />} />
-          <Route path="/table" element={<TablePage />} />
-          <Route path="/user/:username" element={<UserPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+      <UserProvider>
+        <BrowserRouter>
+          <NavigationBar />
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/list" element={<ListPage />} />
+            <Route path="/table" element={<TablePage />} />
+            <Route path="/user/:username" element={<UserPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </UserProvider>
     </ThemeProvider>
   );
 }

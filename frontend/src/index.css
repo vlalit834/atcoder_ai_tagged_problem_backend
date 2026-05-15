@@ -18,3 +18,26 @@ body,
   --bs-table-bg: #2b3035;
   --bs-table-color: #adb5bd;
 }
+
+/* Kenkoooo-exact green for solved (AC) rows/cells */
+.table-success,
+.table > :not(caption) > * > .table-success {
+  --bs-table-bg: #c3e6cb;
+  --bs-table-color: #155724;
+  --bs-table-hover-bg: #b1dfbb;
+  --bs-table-hover-color: #0c3a17;
+  --bs-table-striped-bg: #b8e2c2;
+  --bs-table-striped-color: #155724;
+  --bs-table-border-color: #b1dfbb;
+}
+
+[data-bs-theme="dark"] .table-success,
+[data-bs-theme="dark"] .table > :not(caption) > * > .table-success {
+  --bs-table-bg: #005c08;
+  --bs-table-color: #ffffff;
+  --bs-table-hover-bg: #004d07;
+  --bs-table-hover-color: #ffffff;
+  --bs-table-striped-bg: #00540a;
+  --bs-table-striped-color: #ffffff;
+  --bs-table-border-color: #004d07;
+}

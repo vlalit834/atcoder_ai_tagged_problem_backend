@@ -6,6 +6,7 @@ import type {
   ContestList,
   DifficultyResponse,
   AllProblemsResponse,
+  UserSubmissionsResponse,
 } from "../types/api";
 import { cachedFetch } from "./cache";
 
@@ -82,4 +83,13 @@ export const api = {
       () => request<AllProblemsResponse>("/problems/all"),
       { ttl: ONE_HOUR },
     ),
+
+  userSubmissions: (username: string) => {
+    const path = `/problems/user/${encodeURIComponent(username)}/submissions`;
+    return cachedFetch(
+      path,
+      () => request<UserSubmissionsResponse>(path),
+      { ttl: FIVE_MIN, persist: true },
+    );
+  },
 };

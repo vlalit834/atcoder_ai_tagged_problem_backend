@@ -66,3 +66,11 @@ export interface AllProblemsResponse {
   total: number;
   items: AllProblem[];
 }
+
+export interface UserSubmissionsResponse {
+  username: string;
+  total_submissions: number;
+  accepted_count: number;
+  unique_solved: number;
+  solved_problems: string[];
+}
