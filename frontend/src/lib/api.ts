@@ -7,8 +7,12 @@ import type {
   DifficultyResponse,
   AllProblemsResponse,
 } from "../types/api";
+import { cachedFetch } from "./cache";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
+const ONE_HOUR = 60 * 60 * 1000;
+const FIVE_MIN = 5 * 60 * 1000;
 
 async function request<T>(path: string): Promise<T> {
   const url = `${BASE_URL}${path}`;
@@ -46,17 +50,36 @@ export const api = {
     if (params?.search) query.set("search", params.search);
     if (params?.sort) query.set("sort", params.sort);
     const qs = query.toString();
-    return request<PaginatedProblems>(`/problems${qs ? `?${qs}` : ""}`);
+    const path = `/problems${qs ? `?${qs}` : ""}`;
+    return cachedFetch(path, () => request<PaginatedProblems>(path), {
+      ttl: FIVE_MIN,
+      persist: false,
+    });
   },
 
-  tags: () => request<TagCount[]>("/tags"),
+  tags: () =>
+    cachedFetch("/tags", () => request<TagCount[]>("/tags"), {
+      ttl: ONE_HOUR,
+    }),
 
   contests: (category?: string) => {
-    const qs = category ? `?category=${category}` : "";
-    return request<ContestList>(`/contests${qs}`);
+    const path = `/contests${category ? `?category=${category}` : ""}`;
+    return cachedFetch(path, () => request<ContestList>(path), {
+      ttl: ONE_HOUR,
+    });
   },
 
-  difficulties: () => request<DifficultyResponse>("/problems/difficulties"),
+  difficulties: () =>
+    cachedFetch(
+      "/problems/difficulties",
+      () => request<DifficultyResponse>("/problems/difficulties"),
+      { ttl: ONE_HOUR },
+    ),
 
-  allProblems: () => request<AllProblemsResponse>("/problems/all"),
+  allProblems: () =>
+    cachedFetch(
+      "/problems/all",
+      () => request<AllProblemsResponse>("/problems/all"),
+      { ttl: ONE_HOUR },
+    ),
 };
