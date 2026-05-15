@@ -9,27 +9,28 @@ import {
   getProblemModels,
   getUserSubmissions,
 } from "../services/kenkoooo.service.js";
+
 export async function listProblems(req, res) {
   const { page, limit, offset } = parsePagination(req.query);
   const tag = sanitizeTag(req.query.tag);
-
+  
   const search = req.query.search ? req.query.search.toLowerCase().trim() : "";
-  const sort = req.query.sort || "id_asc";
+  const sort = req.query.sort || "id_asc"; 
 
   try {
     let filtered = queries.getAllProblems().all();
 
     if (tag) {
-      filtered = filtered.filter((p) => {
+      filtered = filtered.filter(p => {
         if (!p.Tags) return false;
-        const tagsArray = p.Tags.split(",").map((t) => t.trim().toLowerCase());
+        const tagsArray = p.Tags.split(",").map(t => t.trim().toLowerCase());
         return tagsArray.includes(tag.toLowerCase());
       });
     }
 
     if (search) {
-      filtered = filtered.filter((p) => {
-        const atcoderId = (p.Problem_Link || "").split("/").pop() || "";
+      filtered = filtered.filter(p => {
+        const atcoderId = (p.Problem_Link || "").split('/').pop() || "";
         return atcoderId.toLowerCase().includes(search);
       });
     }
@@ -73,6 +74,7 @@ export async function listProblems(req, res) {
     fail(res, error.message, 500);
   }
 }
+
 export function listTags(req, res) {
   const rows = queries.selectAllTags().all();
   const tagCount = new Map();
@@ -143,14 +145,6 @@ export async function userSubmissions(req, res) {
   if (!isValidUsername(username)) {
     return fail(res, "invalid username", 400);
   }
-  const submissions = await getUserSubmissions(username);
-  const accepted = submissions.filter((s) => s.result === "AC");
-  const solvedSet = new Set(accepted.map((s) => s.problem_id));
-  ok(res, {
-    username,
-    total_submissions: submissions.length,
-    accepted_count: accepted.length,
-    unique_solved: solvedSet.size,
-    solved_problems: Array.from(solvedSet),
-  });
+  const summary = await getUserSubmissions(username);
+  ok(res, { username, ...summary });
 }

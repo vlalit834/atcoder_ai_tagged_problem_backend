@@ -13,7 +13,7 @@ router.get("/all", cacheControl(1800), asyncHandler(listAllProblems));
 router.get("/difficulties", cacheControl(3600), asyncHandler(listDifficulties));
 router.get(
   "/user/:username/submissions",
-  noCache,
+  cacheControl(300),
   asyncHandler(userSubmissions),
 );
 export default router;
