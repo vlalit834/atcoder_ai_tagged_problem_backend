@@ -11,11 +11,13 @@ import {
   Form,
 } from "reactstrap";
 import { NavLink, useNavigate } from "react-router-dom";
+import { useTheme } from "../context/ThemeContext";
 
 const NavigationBar = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [userInput, setUserInput] = useState<string>("");
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   const toggle = () => setIsOpen(!isOpen);
 
@@ -27,8 +29,10 @@ const NavigationBar = () => {
     }
   };
 
+  const isDark = theme === "dark";
+
   return (
-    <Navbar color="dark" dark expand="md" className="px-3">
+    <Navbar color={isDark ? "dark" : "light"} dark={isDark} light={!isDark} expand="md" className="px-3">
       <NavbarBrand tag={NavLink} to="/">
         AtCoder AI Tags
       </NavbarBrand>
@@ -49,7 +53,7 @@ const NavigationBar = () => {
           </NavItem>
         </Nav>
 
-        <Form onSubmit={handleUserSearch} className="d-flex" role="search">
+        <Form onSubmit={handleUserSearch} className="d-flex me-2" role="search">
           <Input
             type="text"
             placeholder="AtCoder username..."
@@ -61,6 +65,16 @@ const NavigationBar = () => {
             Go
           </Button>
         </Form>
+
+        <Button
+          color={isDark ? "light" : "dark"}
+          outline
+          size="sm"
+          onClick={toggleTheme}
+          title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          {isDark ? "Light" : "Dark"}
+        </Button>
       </Collapse>
     </Navbar>
   );

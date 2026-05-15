@@ -298,7 +298,6 @@ export default function TablePage() {
             size="sm"
             className="align-middle"
             style={{
-              background: "white",
               tableLayout: "fixed",
               width: "100%",
               fontSize: "0.85rem",
@@ -356,8 +355,7 @@ export default function TablePage() {
                         return (
                           <td
                             key={h}
-                            className="text-center text-muted"
-                            style={{ background: "#f8f9fa" }}
+                            className="text-center text-muted table-secondary"
                           >
                             <small>-</small>
                           </td>
