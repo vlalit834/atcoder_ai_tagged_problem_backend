@@ -4,11 +4,85 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Browse and filter AtCoder problems by AI-generated topic tags. Track solved progress per user." />
-<title>AtCoder Tagged Problems</title>
+    <meta name="theme-color" content="#0d6efd" />
+
+    <!-- Primary SEO -->
+    <title>AtCoder AI Tagged Problems – Browse, Filter &amp; Track Solved Problems by Topic</title>
+    <meta name="description" content="Free AtCoder problem explorer with AI-generated topic tags (DP, Graph, Greedy, Math and more). Filter by tag and difficulty, search problems, and track solved status by AtCoder username." />
+    <meta name="keywords" content="atcoder, atcoder problems, atcoder tags, atcoder topic tags, atcoder problem search, atcoder dp problems, atcoder graph problems, competitive programming, cp tracker, atcoder solved tracker, kenkoooo alternative, atcoder difficulty filter" />
+    <meta name="author" content="vlalit834" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="googlebot" content="index, follow" />
+    <link rel="canonical" href="https://atcoder-ai-tagged-problem.vercel.app/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://atcoder-ai-tagged-problem.vercel.app/" />
+    <meta property="og:title" content="AtCoder AI Tagged Problems – Topic-wise Problem Explorer" />
+    <meta property="og:description" content="Browse 9000+ AtCoder problems tagged by topic using AI. Filter by tag, difficulty, contest. Track per-user solved status. Free and fast." />
+    <meta property="og:image" content="https://atcoder-ai-tagged-problem.vercel.app/favicon.svg" />
+    <meta property="og:site_name" content="AtCoder AI Tagged Problems" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="AtCoder AI Tagged Problems" />
+    <meta name="twitter:description" content="Browse 9000+ AtCoder problems tagged by topic using AI. Filter, search, and track solved progress." />
+    <meta name="twitter:image" content="https://atcoder-ai-tagged-problem.vercel.app/favicon.svg" />
+
+    <!-- Structured Data: WebSite + SearchAction -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "AtCoder AI Tagged Problems",
+      "alternateName": "AtCoder Topic Tags",
+      "url": "https://atcoder-ai-tagged-problem.vercel.app/",
+      "description": "Browse and filter AtCoder competitive programming problems by AI-generated topic tags. Track solved problems per AtCoder user.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://atcoder-ai-tagged-problem.vercel.app/list?search={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <!-- Structured Data: WebApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "AtCoder AI Tagged Problems",
+      "url": "https://atcoder-ai-tagged-problem.vercel.app/",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires JavaScript",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "AI-generated topic tags for AtCoder problems",
+        "Filter by tag, difficulty and contest",
+        "Per-user solved status tracking",
+        "Sort by difficulty, contest date, ID"
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- SEO fallback content for crawlers that don't render JS well -->
+    <noscript>
+      <h1>AtCoder AI Tagged Problems</h1>
+      <p>
+        Browse and filter <strong>AtCoder problems</strong> by AI-generated topic tags
+        (Dynamic Programming, Graph, Greedy, Math, Strings and more). Search by problem
+        name, filter by difficulty range, and track solved problems for any AtCoder user.
+      </p>
+      <p>This app requires JavaScript to be enabled.</p>
+    </noscript>
   </body>
 </html>
