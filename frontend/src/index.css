@@ -19,7 +19,6 @@ body,
   --bs-table-color: #adb5bd;
 }
 
-/* Kenkoooo-exact green for solved (AC) rows/cells */
 .table-success,
 .table > :not(caption) > * > .table-success {
   --bs-table-bg: #c3e6cb;

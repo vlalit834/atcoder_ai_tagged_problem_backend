@@ -81,7 +81,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       if (trimmed) window.localStorage.setItem(STORAGE_KEY, trimmed);
       else window.localStorage.removeItem(STORAGE_KEY);
     } catch {
-      // ignore
+      /* localStorage unavailable - ignore */
     }
   }, []);
 
