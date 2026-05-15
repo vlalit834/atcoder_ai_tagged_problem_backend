@@ -116,11 +116,17 @@ export async function listAllProblems(req, res) {
 
   const mergedMap = new Map(merged.map((m) => [m.id, m]));
 
+  // Build a single in-memory tag lookup keyed by AtCoder problem id (the
+  // trailing slug of Problem_Link). One DB scan replaces ~9 600 LIKE queries.
+  const tagsById = new Map();
+  for (const row of queries.getAllProblems().all()) {
+    if (!row.Problem_Link || !row.Tags) continue;
+    const id = row.Problem_Link.split("/").pop();
+    if (id) tagsById.set(id, row.Tags);
+  }
+
   const result = problems.map((p) => {
     const extra = mergedMap.get(p.id) || {};
-    const linkPattern = `%${p.id}%`;
-    const dbRow = queries.findByLink().get(linkPattern);
-
     return {
       id: p.id,
       contest_id: p.contest_id,
@@ -128,7 +134,7 @@ export async function listAllProblems(req, res) {
       name: p.name,
       title: p.title,
       solver_count: extra.solver_count || null,
-      tags: dbRow?.Tags || null,
+      tags: tagsById.get(p.id) || null,
     };
   });
 

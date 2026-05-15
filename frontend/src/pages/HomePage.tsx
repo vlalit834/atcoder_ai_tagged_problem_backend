@@ -1,7 +1,18 @@
+import { useEffect } from "react";
 import { Container, Alert, Row, Col, Card, CardBody, CardTitle, CardText, Button } from "reactstrap";
 import { Link } from "react-router-dom";
+import { api } from "../lib/api";
 
 const HomePage = () => {
+  // Warm the local cache in the background while the user is reading the
+  // landing page so that navigating to List / Table feels instant.
+  useEffect(() => {
+    void api.contests().catch(() => {});
+    void api.allProblems().catch(() => {});
+    void api.difficulties().catch(() => {});
+    void api.tags().catch(() => {});
+  }, []);
+
   return (
     <Container className="mt-4 mb-5">
       <Row className="mb-4">
@@ -28,7 +39,9 @@ const HomePage = () => {
                 difficulty, or contest identifier.
               </CardText>
               <Link to="/list">
-                <Button color="primary" outline size="sm">Open List</Button>
+                <Button color="primary" outline size="sm">
+                  Open List
+                </Button>
               </Link>
             </CardBody>
           </Card>
@@ -42,7 +55,9 @@ const HomePage = () => {
                 and inline tag badges.
               </CardText>
               <Link to="/table">
-                <Button color="primary" outline size="sm">Open Table</Button>
+                <Button color="primary" outline size="sm">
+                  Open Table
+                </Button>
               </Link>
             </CardBody>
           </Card>
@@ -56,7 +71,9 @@ const HomePage = () => {
                 frequently solved tags.
               </CardText>
               <Link to="/list">
-                <Button color="primary" outline size="sm">Get Started</Button>
+                <Button color="primary" outline size="sm">
+                  Get Started
+                </Button>
               </Link>
             </CardBody>
           </Card>

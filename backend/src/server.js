@@ -1,43 +1,41 @@
-import express from "express";
-import { createApp } from "./app.js";
-import { env } from "./config/env.js";
-import { closeDb, openDb } from "./db/connection.js";
+import { env } from './config/env.js';
+import { openDatabase, closeDatabase } from './db/connection.js';
+import { createApp } from './app.js';
 
-openDb();
+function bootstrap() {
+  openDatabase();
 
-const app = createApp();
+  const app = createApp();
+  const server = app.listen(env.PORT, () => {
+    // eslint-disable-next-line no-console
+    console.log(
+      `[server] listening on http://localhost:${env.PORT} (${env.NODE_ENV})`
+    );
+  });
 
-const server = app.listen(env.PORT, (req, res) => {
-  console.log(
-    `Server running at http://localhost:${env.PORT} (${env.NODE_ENV})`,
-  );
-});
+  const shutdown = (signal) => {
+    // eslint-disable-next-line no-console
+    console.log(`[server] received ${signal}, shutting down…`);
+    server.close((err) => {
+      closeDatabase();
+      if (err) {
+        // eslint-disable-next-line no-console
+        console.error('[server] error during shutdown', err);
+        process.exit(1);
+      }
+      process.exit(0);
+    });
 
-let shuttingDown = false;
-function shutDown(signal) {
-  if (shuttingDown) return;
-  shuttingDown = true;
-  console.log(`[Server] received ${signal}, shutting down`);
-  const exitCleanly = (code) => {
-    closeDb();
-    console.log("[Server] bye");
-    process.stdout.write("", () => process.exit(code));
+    // Force-exit if shutdown hangs longer than 10s.
+    setTimeout(() => process.exit(1), 10_000).unref();
   };
-  server.close(() => exitCleanly(0));
-  setTimeout(() => {
-    console.log("[Server] force-closing");
-    exitCleanly(0);
-  }, 1000).unref();
+
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('unhandledRejection', (reason) => {
+    // eslint-disable-next-line no-console
+    console.error('[server] unhandled rejection', reason);
+  });
 }
 
-process.on("SIGINT", () => shutDown("SIGINT"));
-process.on("SIGTERM", () => shutDown("SIGTERM"));
-process.on("unhandledRejection", (reason) => {
-  console.error("[Server] unhandledRejection:", reason);
-  shutDown("unhandledRejection");
-});
-
-process.on("uncaughtException", (err) => {
-  console.error("[Server] uncaughtException:", err);
-  shutDown("uncaughtException");
-});
+bootstrap();
