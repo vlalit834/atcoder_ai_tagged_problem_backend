@@ -9,6 +9,11 @@ function prep(key, sql) {
 }
 
 export const queries = {
+  getAllProblems: () =>
+    prep(
+      "getAllProblems",
+      `SELECT problem_index, Problem_Link, Editorial_Link, Tags FROM problems`,
+    ),
   countAll: () => prep("countAll", `SELECT COUNT(*) AS total FROM problems`),
 
   selectPage: () =>

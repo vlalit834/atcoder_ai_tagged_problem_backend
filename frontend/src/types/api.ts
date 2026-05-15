@@ -44,3 +44,12 @@ export interface ContestList {
   total: number;
   items: Contest[];
 }
+
+
+export interface ProblemModel {
+  difficulty?: number;
+  is_experimental?: boolean;
+}
+
+export type DifficultyResponse = Record<string, ProblemModel>;
+

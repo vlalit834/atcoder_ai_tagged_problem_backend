@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Container,
   Table,
@@ -12,74 +13,135 @@ import {
   Badge,
 } from "reactstrap";
 import { api } from "../lib/api";
-import type { Problem, PaginatedProblems, TagCount } from "../types/api";
+import type { Problem, TagCount, DifficultyResponse } from "../types/api";
+import { useDebounce } from "../hooks/useDebounce";
+import { getDifficultyColor, getDifficultyLabel } from "../lib/difficulty";
+
+type SortKey = "id_asc" | "id_desc" | "diff_asc" | "diff_desc";
 
 export default function ListPage() {
-  // ---------- STATE ----------
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const initialPage = parseInt(searchParams.get("page") || "1", 10);
+  const initialTag = searchParams.get("tag") || "";
+  const initialSearch = searchParams.get("q") || "";
+  const initialSort = (searchParams.get("sort") as SortKey) || "id_asc";
+
   const [problems, setProblems] = useState<Problem[]>([]);
   const [tags, setTags] = useState<TagCount[]>([]);
-  const [selectedTag, setSelectedTag] = useState<string>("");
-  const [page, setPage] = useState<number>(1);
+  const [difficulties, setDifficulties] = useState<Map<string, number>>(
+    new Map(),
+  );
+
+  const [selectedTag, setSelectedTag] = useState<string>(initialTag);
+  const [page, setPage] = useState<number>(initialPage);
+  const [searchInput, setSearchInput] = useState<string>(initialSearch);
+  const [sortKey, setSortKey] = useState<SortKey>(initialSort);
+
   const [totalPages, setTotalPages] = useState<number>(1);
   const [total, setTotal] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const debouncedSearch = useDebounce(searchInput, 300);
   const limit = 50;
 
-  // ---------- FETCH TAGS (sirf 1 baar, mount par) ----------
   useEffect(() => {
     api
       .tags()
-      .then((res) => {
-        if (res.success && res.data) setTags(res.data);
-      })
-      .catch((err) => console.error("Tags fetch failed:", err));
-  }, []); // empty deps = sirf mount par
+      .then((res) => setTags(res || []))
+      .catch((err) => console.error(err));
 
-  // ---------- FETCH PROBLEMS (jab bhi page ya tag badle) ----------
+    api
+      .difficulties()
+      .then((res: any) => {
+        const map = new Map<string, number>();
+        
+        if (res && typeof res === "object") {
+          const entries = Array.isArray(res) 
+            ? res.map(r => [r.problem_id, r]) 
+            : Object.entries(res);
+            
+          entries.forEach(([problemId, model]: any) => {
+            if (model && typeof model.difficulty === "number") {
+              map.set(problemId, Math.max(0, model.difficulty));
+            }
+          });
+        }
+        setDifficulties(map);
+      })
+      .catch((err) => console.error(err));
+  }, []);
+
   useEffect(() => {
     setLoading(true);
     setError(null);
 
-    const params: Record<string, string | number> = { page, limit };
+    const params: Record<string, string | number> = {
+      page,
+      limit,
+      search: debouncedSearch.trim().toLowerCase(),
+      sort: sortKey,
+    };
     if (selectedTag) params.tag = selectedTag;
 
     api
       .problems(params)
       .then((res) => {
-        if (res.success && res.data) {
-          const data = res.data as PaginatedProblems;
-          setProblems(data.problems);
-          setTotalPages(data.totalPages);
-          setTotal(data.total);
-        } else {
-          setError("Failed to load problems");
-        }
+        setProblems(res.items || []);
+        setTotalPages(res.totalPages || 1);
+        setTotal(res.total || 0);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [page, selectedTag]); // jab bhi yeh change ho, refetch
+  }, [page, selectedTag, debouncedSearch, sortKey]);
 
-  // ---------- HANDLERS ----------
+  useEffect(() => {
+    const next: Record<string, string> = {};
+    if (page > 1) next.page = String(page);
+    if (selectedTag) next.tag = selectedTag;
+    if (debouncedSearch) next.q = debouncedSearch;
+    if (sortKey !== "id_asc") next.sort = sortKey;
+    setSearchParams(next, { replace: true });
+  }, [page, selectedTag, debouncedSearch, sortKey, setSearchParams]);
+
+  const getProblemId = (link: string): string => {
+    return link.split("/").pop() || "";
+  };
+
+  const visibleProblems = useMemo(() => {
+    return problems.map((p) => ({
+      problem: p,
+      diff: difficulties.get(getProblemId(p.Problem_Link)) ?? null,
+    }));
+  }, [problems, difficulties]);
+
   const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedTag(e.target.value);
-    setPage(1); // tag badle to page 1 par reset
+    setPage(1);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchInput(e.target.value);
+    setPage(1);
+  };
+
+  const handleSortChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSortKey(e.target.value as SortKey);
+    setPage(1);
   };
 
   const goPrev = () => setPage((p) => Math.max(1, p - 1));
   const goNext = () => setPage((p) => Math.min(totalPages, p + 1));
 
-  // ---------- RENDER ----------
   return (
     <Container className="mt-4">
-      <h2 className="mb-3">📋 Problem List</h2>
+      <h2 className="mb-3">Problem List</h2>
 
-      {/* Tag Filter Dropdown — YEH HAI USP 🔥 */}
-      <Row className="mb-3">
-        <Col md={6}>
+      <Row className="mb-3 g-3">
+        <Col md={4}>
           <Label for="tagSelect">
-            <strong>Tags:</strong>
+            <strong>Filter by AI Tag:</strong>
           </Label>
           <Input
             id="tagSelect"
@@ -89,59 +151,103 @@ export default function ListPage() {
           >
             <option value="">All Tags ({total} problems)</option>
             {tags.map((t) => (
-              <option key={t.tag} value={t.tag}>
-                {t.tag} ({t.count})
+              <option key={t.Tags} value={t.Tags}>
+                {t.Tags} ({t.count})
               </option>
             ))}
           </Input>
         </Col>
+
+        <Col md={4}>
+          <Label for="searchInput">
+            <strong>Search Problem ID:</strong>
+          </Label>
+          <Input
+            id="searchInput"
+            type="text"
+            placeholder="e.g. abc300_a"
+            value={searchInput}
+            onChange={handleSearchChange}
+          />
+        </Col>
+
+        <Col md={4}>
+          <Label for="sortSelect">
+            <strong>Sort by:</strong>
+          </Label>
+          <Input
+            id="sortSelect"
+            type="select"
+            value={sortKey}
+            onChange={handleSortChange}
+          >
+            <option value="id_asc">Default (ID A to Z)</option>
+            <option value="id_desc">ID (Z to A)</option>
+            <option value="diff_asc">Difficulty (Easy to Hard)</option>
+            <option value="diff_desc">Difficulty (Hard to Easy)</option>
+          </Input>
+        </Col>
       </Row>
 
-      {/* Loading / Error / Empty / Table */}
       {loading && (
         <div className="text-center my-4">
           <Spinner color="primary" /> <span className="ms-2">Loading...</span>
         </div>
       )}
 
-      {error && <Alert color="danger">❌ {error}</Alert>}
+      {error && <Alert color="danger">{error}</Alert>}
 
-      {!loading && !error && problems.length === 0 && (
-        <Alert color="warning">No problems found for this filter.</Alert>
+      {!loading && !error && visibleProblems.length === 0 && (
+        <Alert color="warning">No problems found for current filters.</Alert>
       )}
 
-      {!loading && !error && problems.length > 0 && (
+      {!loading && !error && visibleProblems.length > 0 && (
         <>
           <Table striped hover responsive>
             <thead>
               <tr>
                 <th>#</th>
-                <th>Problem</th>
-                <th>Contest</th>
+                <th>Problem ID</th>
+                <th>Problem Link</th>
+                <th>Difficulty</th>
                 <th>AI Tags</th>
                 <th>Editorial</th>
               </tr>
             </thead>
             <tbody>
-              {problems.map((p, idx) => (
+              {visibleProblems.map(({ problem: p, diff }, idx) => (
                 <tr key={p.Problem_Link}>
                   <td>{(page - 1) * limit + idx + 1}</td>
+                  <td>{p.problem_index}</td>
                   <td>
                     <a
                       href={p.Problem_Link}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      {p.Problem_Name}
+                      {getProblemId(p.Problem_Link) || "View Problem"}
                     </a>
                   </td>
-                  <td>{p.Contest_Name}</td>
                   <td>
-                    {p.Tags?.split(",").map((tag) => (
-                      <Badge key={tag} color="info" className="me-1">
-                        {tag.trim()}
-                      </Badge>
-                    ))}
+                    <span
+                      style={{
+                        color: getDifficultyColor(diff),
+                        fontWeight: 600,
+                      }}
+                    >
+                      {getDifficultyLabel(diff)}
+                    </span>
+                  </td>
+                  <td>
+                    {p.Tags ? (
+                      p.Tags.split(",").map((tag) => (
+                        <Badge key={tag} color="info" className="me-1">
+                          {tag.trim()}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-muted">—</span>
+                    )}
                   </td>
                   <td>
                     {p.Editorial_Link ? (
@@ -150,7 +256,7 @@ export default function ListPage() {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        📖
+                        View
                       </a>
                     ) : (
                       "—"
@@ -161,10 +267,9 @@ export default function ListPage() {
             </tbody>
           </Table>
 
-          {/* Pagination */}
           <div className="d-flex justify-content-between align-items-center my-3">
             <Button color="secondary" onClick={goPrev} disabled={page === 1}>
-              ← Previous
+              Previous
             </Button>
             <span>
               Page <strong>{page}</strong> of <strong>{totalPages}</strong>{" "}
@@ -175,7 +280,7 @@ export default function ListPage() {
               onClick={goNext}
               disabled={page === totalPages}
             >
-              Next →
+              Next
             </Button>
           </div>
         </>

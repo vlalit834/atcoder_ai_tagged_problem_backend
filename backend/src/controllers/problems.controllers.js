@@ -9,25 +9,70 @@ import {
   getProblemModels,
   getUserSubmissions,
 } from "../services/kenkoooo.service.js";
-export function listProblems(req, res) {
+export async function listProblems(req, res) {
   const { page, limit, offset } = parsePagination(req.query);
   const tag = sanitizeTag(req.query.tag);
-  let total = queries.countAll().get().total;
-  let items = queries.selectPage().all(limit, offset);
-  if (tag) {
-    const pattern = `%${tag}%`;
-    total = queries.countByTag().get(pattern).total;
-    items = queries.searchByTag().all(pattern, limit, offset);
-  }
-  ok(res, {
-    page,
-    limit,
-    total,
-    totalPages: Math.ceil(total / limit),
-    items,
-  });
-}
 
+  const search = req.query.search ? req.query.search.toLowerCase().trim() : "";
+  const sort = req.query.sort || "id_asc";
+
+  try {
+    let filtered = queries.getAllProblems().all();
+
+    if (tag) {
+      filtered = filtered.filter((p) => {
+        if (!p.Tags) return false;
+        const tagsArray = p.Tags.split(",").map((t) => t.trim().toLowerCase());
+        return tagsArray.includes(tag.toLowerCase());
+      });
+    }
+
+    if (search) {
+      filtered = filtered.filter((p) => {
+        const atcoderId = (p.Problem_Link || "").split("/").pop() || "";
+        return atcoderId.toLowerCase().includes(search);
+      });
+    }
+
+    const models = await getProblemModels();
+
+    const missingSentinel =
+      sort === "diff_desc" ? -Infinity : Number.POSITIVE_INFINITY;
+
+    filtered.sort((a, b) => {
+      const aId = (a.Problem_Link || "").split("/").pop() || "";
+      const bId = (b.Problem_Link || "").split("/").pop() || "";
+
+      if (sort === "diff_asc" || sort === "diff_desc") {
+        const aDiff = models[aId]?.difficulty ?? missingSentinel;
+        const bDiff = models[bId]?.difficulty ?? missingSentinel;
+
+        if (aDiff !== bDiff) {
+          return sort === "diff_asc" ? aDiff - bDiff : bDiff - aDiff;
+        }
+        return aId.localeCompare(bId);
+      }
+
+      if (sort === "id_desc") {
+        return bId.localeCompare(aId);
+      }
+      return aId.localeCompare(bId);
+    });
+
+    const total = filtered.length;
+    const items = filtered.slice(offset, offset + limit);
+
+    ok(res, {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      items,
+    });
+  } catch (error) {
+    fail(res, error.message, 500);
+  }
+}
 export function listTags(req, res) {
   const rows = queries.selectAllTags().all();
   const tagCount = new Map();
